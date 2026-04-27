@@ -1,0 +1,37 @@
+:root {
+  --bg: #070d19;
+  --panel: #0f1a2f;
+  --line: #23466e;
+  --text: #e5f3ff;
+  --muted: #9eb5cf;
+  --glow: #57d8ff;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Exo 2", system-ui, sans-serif; background: radial-gradient(circle at top, #10234c 0%, var(--bg) 45%); color: var(--text); }
+.spa-shell { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; }
+.sidebar { border-right: 1px solid var(--line); padding: 16px; position: sticky; top: 0; height: 100vh; background: rgba(8, 14, 28, 0.96); }
+.sidebar h2 { font-family: Orbitron, sans-serif; margin: 0 0 12px; color: var(--glow); }
+.nav-btn { width: 100%; margin-bottom: 8px; text-align: left; border: 1px solid var(--line); background: #112241; color: var(--text); padding: 10px; border-radius: 8px; cursor: pointer; }
+.nav-btn.active, .nav-btn:hover { box-shadow: 0 0 14px rgba(87,216,255,0.35); }
+.sidebar-foot { margin-top: 16px; font-size: 13px; }
+.spa-main { padding: 18px; max-width: 1500px; }
+.spa-section { display: none; }
+.spa-section.active { display: block; }
+.card { background: rgba(15, 26, 47, 0.95); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+.muted { color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.forum-layout { grid-template-columns: 2fr 1fr; }
+.hero { min-height: 200px; background: linear-gradient(115deg, rgba(18, 43, 86, 0.96), rgba(10, 20, 36, 0.98)); }
+.hero-actions { display: flex; gap: 10px; }
+button, select, input, textarea { font: inherit; }
+button { border: 1px solid #2f678f; background: linear-gradient(115deg, #12345c, #175c7d); color: var(--text); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+input, select, textarea { width: 100%; background: #081226; border: 1px solid #2a557e; color: var(--text); border-radius: 8px; padding: 8px; }
+.controls-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+canvas { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; background: #030916; margin-top: 8px; }
+.carousel { display: flex; gap: 10px; overflow: hidden; white-space: nowrap; padding: 8px 0; }
+.carousel-item { min-width: 180px; border: 1px solid #2e6288; border-radius: 8px; padding: 10px; background: #0a1931; text-align: center; }
+.carousel-item.active { border-color: var(--glow); box-shadow: 0 0 14px rgba(87,216,255,0.4); }
+.chat-box { min-height: 220px; max-height: 300px; overflow: auto; background: #091427; border: 1px solid #274f75; padding: 8px; border-radius: 8px; }
+.row { display: flex; gap: 8px; margin-top: 8px; }
+@media (max-width: 1200px) { .spa-shell { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; } .grid, .grid-3, .forum-layout { grid-template-columns: 1fr; } }
