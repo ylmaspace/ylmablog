@@ -1,0 +1,54 @@
+:root {
+  color-scheme: dark;
+  --bg: #070d18;
+  --card: #ffffff0d;
+  --line: #6de3ff55;
+  --text: #ebf6ff;
+  --muted: #a6c7d8;
+  --accent: #58dbff;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  background: radial-gradient(circle at top, #163562 0%, var(--bg) 45%, #04070d 100%);
+  color: var(--text);
+}
+#app { max-width: 1200px; margin: 0 auto; padding: 18px; }
+.hero { display: flex; justify-content: space-between; align-items: end; gap: 12px; }
+.hero h1 { margin: 0 0 6px 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-top: 12px; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 12px;
+  padding: 14px;
+  backdrop-filter: blur(3px);
+}
+button, input, select, textarea {
+  width: 100%;
+  background: #0000002e;
+  color: #fff;
+  border: 1px solid #75e5ff66;
+  border-radius: 8px;
+  padding: 9px;
+  margin-top: 8px;
+}
+button:hover { cursor: pointer; background: #58dbff1f; }
+textarea { min-height: 98px; font-family: ui-monospace, monospace; }
+.muted { color: var(--muted); font-size: .92rem; }
+.mono { font-family: ui-monospace, monospace; word-break: break-all; }
+#arenaCanvas {
+  width: 100%;
+  max-width: 720px;
+  height: 520px;
+  display: block;
+  margin: 10px auto;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: radial-gradient(circle at center, #051932 0%, #030913 66%, #020409 100%);
+}
+.controls-grid { display: grid; grid-template-columns: repeat(3, minmax(100px,1fr)); gap: 6px; }
+#events { max-height: 220px; overflow: auto; }
+.pill { display:inline-block; padding:2px 8px; border:1px solid var(--line); border-radius:999px; font-size: .75rem; }
