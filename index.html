@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YLMA Experience | Arena Framework v1</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app">
+    <h1>🚀 YLMA Space Experience — Arena Framework v1</h1>
+    <p class="muted">Runtime real: cliente browser + servidor Node/Socket.io externo (autoritativo). Esta UI ya no embebe backend como texto.</p>
+
+    <div class="grid">
+      <section class="card">
+        <b>Cuenta / Sesión</b><br />
+        PlayerID: <span id="pid" class="mono">-</span><br />
+        Token: <span id="ptoken" class="mono">-</span><br />
+        Estado: <span id="status">desconectado</span>
+        <input id="guestName" maxlength="20" placeholder="Tu nombre de piloto" />
+        <button onclick="loginGuest()">Entrar como invitado</button>
+        <button onclick="reconnect()">Reconectar con token guardado</button>
+      </section>
+
+      <section class="card">
+        <b>Piloto</b><br />
+        Nombre: <span id="pname">-</span><br />
+        Clan: <span id="pclan">NONE</span><br />
+        XP: <span id="pxp">0</span> | NOVA: <span id="pnova">0</span><br />
+        Sala: <span id="proom">-</span><br />
+        MMR: <span id="pmmr">1000</span>
+        <input id="newName" maxlength="20" placeholder="Cambiar nombre" />
+        <button onclick="setName()">Guardar nombre</button>
+      </section>
+
+      <section class="card">
+        <b>Matchmaking y Salas</b>
+        <button onclick="joinRoom('GALAXY-01')">Entrar sala GALAXY-01</button>
+        <button onclick="findMatch()">Buscar partida global</button>
+        <div class="muted">Server tick: <span id="tick">-</span></div>
+      </section>
+
+      <section class="card">
+        <b>Clanes</b>
+        <button onclick="joinClan('ORION')">Unirse ORION</button>
+        <button onclick="joinClan('NOVA')">Unirse NOVA</button>
+        <button onclick="joinClan('VEGA')">Unirse VEGA</button>
+        <div id="clans" class="muted"></div>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:12px">
+      <b>ARENA SYSTEM (Plugin)</b>
+      <select id="arenaSelector" onchange="switchArena(this.value)">
+        <option value="ORBIT_CORRECTOR">ORBIT CORRECTOR</option>
+        <option value="WIND_TUNNEL_BUILDER">WIND TUNNEL BUILDER</option>
+        <option value="RENDEZVOUS">RENDEZVOUS (preview)</option>
+      </select>
+      <canvas id="arenaCanvas" width="620" height="620"></canvas>
+      <div class="muted">
+        Arena: <span id="arenaName">ORBIT CORRECTOR</span> |
+        Tiempo: <span id="arenaTime">0.0</span>s |
+        Fuel: <span id="arenaFuel">100.0</span> |
+        Estabilidad: <span id="arenaStability">0.0</span>% |
+        ΔV: <span id="arenaDeltaV">0.0</span> |
+        Ecc Error: <span id="arenaEcc">0.0</span> |
+        Smoothness: <span id="arenaSmooth">0.0</span>
+      </div>
+      <div class="controls-grid">
+        <button onclick="arenaInput('FORWARD')">FORWARD</button>
+        <button onclick="arenaInput('UP')">UP</button>
+        <button onclick="arenaInput('BACKWARD')">BACKWARD</button>
+        <button onclick="arenaInput('LEFT')">LEFT</button>
+        <button onclick="arenaInput('MAIN_TOGGLE')">MAIN ENGINE ON/OFF</button>
+        <button onclick="arenaInput('RIGHT')">RIGHT</button>
+        <button onclick="arenaInput('DOWN')">DOWN</button>
+        <button onclick="resetArena()">RESET ARENA</button>
+        <button onclick="evaluateArena(true)">EVALUAR</button>
+      </div>
+      <div id="windBuilderPanel" style="display:none; margin-top:10px">
+        <b>Build mode</b>
+        <div class="controls-grid">
+          <button onclick="addPart('body_core')">Cuerpo Core</button>
+          <button onclick="addPart('nose_small')">Ojiva pequeña</button>
+          <button onclick="addPart('nose_medium')">Ojiva media</button>
+          <button onclick="addPart('nose_large')">Ojiva grande</button>
+          <button onclick="addPart('fin_stable')">Aleta estabilidad</button>
+          <button onclick="addPart('panel_aero')">Panel aero</button>
+          <button onclick="addPart('ballast')">Lastre</button>
+          <button onclick="clearBuild()">Limpiar build</button>
+          <button onclick="launchTunnel()">Implementar en túnel</button>
+        </div>
+        <div class="muted" id="windBuildInfo"></div>
+      </div>
+      <div id="arenaResult" class="muted" style="margin-top:8px"></div>
+    </section>
+
+    <div class="grid" style="margin-top:12px">
+      <section class="card">
+        <b>Arena de código (server-evaluated)</b>
+        <div id="challenge" class="muted" style="margin-top:8px">Sin reto activo.</div>
+        <textarea id="code">function solve(input) {
+  return input * 2;
+}</textarea>
+        <button onclick="submitCode()">Enviar solución al servidor</button>
+        <div id="challengeResult" class="muted"></div>
+      </section>
+
+      <section class="card">
+        <b>Jugadores globales</b>
+        <div id="players" class="muted"></div>
+      </section>
+    </div>
+
+    <div class="grid" style="margin-top:12px">
+      <section class="card">
+        <b>Leaderboard local visual</b>
+        <div id="leaderboard" class="muted"></div>
+      </section>
+      <section class="card">
+        <b>Blueprint tools (Wind Tunnel)</b>
+        <button onclick="exportWindBlueprint()">Exportar blueprint</button>
+        <button onclick="importWindBlueprint()">Importar blueprint</button>
+        <textarea id="blueprintJson" placeholder='{"parts":["body_core","nose_small","fin_stable"]}'></textarea>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:12px">
+      <b>Competitive Core Loop (Stakes + Skill)</b>
+      <div class="grid">
+        <div>
+          <label class="muted">Modo competitivo</label>
+          <select id="compMode">
+            <option value="DV_WAR">ΔV WAR (1v1 Orbital)</option>
+            <option value="WIND_TUNNEL_BATTLE">WIND TUNNEL BATTLE</option>
+            <option value="REACTION_ARENA">REACTION ARENA</option>
+            <option value="ORBIT_DOMINATION">ORBIT DOMINATION</option>
+          </select>
+          <input id="stakeInput" type="number" min="5" step="5" value="25" />
+          <button onclick="startCompetitiveMatch()">Iniciar Match con Stake</button>
+          <button onclick="submitCompetitiveScore()">Enviar resultado actual</button>
+          <button onclick="resolveCompetitiveMatch()">Resolver / Pagar pote</button>
+        </div>
+        <div>
+          <div class="muted">
+            Match: <span id="compMatchId">-</span><br />
+            Stake c/u: <span id="compStake">0</span><br />
+            Pot total: <span id="compPot">0</span><br />
+            Estado: <span id="compStatus">idle</span><br />
+            Tu score: <span id="compMyScore">0</span>
+          </div>
+          <div id="compBoard" class="muted" style="margin-top:8px"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:12px">
+      <b>Eventos</b>
+      <div id="events" class="muted"></div>
+    </section>
+  </div>
+
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
