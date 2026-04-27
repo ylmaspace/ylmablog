@@ -10,6 +10,8 @@ export class ArenaManager {
     this.activeKey = null;
     this.active = null;
     this.last = performance.now();
+    this.acc = 0;
+    this.fixedDt = 1 / 60;
   }
 
   register(key, factory) { this.arenas[key] = factory; }
@@ -32,9 +34,13 @@ export class ArenaManager {
   reset() { this.switchTo(this.activeKey); }
 
   loop = (now) => {
-    const dt = Math.min(0.033, (now - this.last) / 1000 || 0.016);
+    const dt = Math.min(0.05, (now - this.last) / 1000 || this.fixedDt);
     this.last = now;
-    this.active?.update?.(dt);
+    this.acc += dt;
+    while (this.acc >= this.fixedDt) {
+      this.active?.update?.(this.fixedDt);
+      this.acc -= this.fixedDt;
+    }
     this.active?.render?.(this.ctx, this.setHud, this.grantRewards);
     requestAnimationFrame(this.loop);
   };

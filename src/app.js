@@ -11,10 +11,13 @@ const state = {
   snapshot: { players: {}, rooms: {}, clans: {}, mmr: {}, queueSize: 0 },
   activeChallenge: null,
   competitive: { activeMatch: null },
+  telemetry: [],
+  streak: 0,
 };
 
 const el = (id) => document.getElementById(id);
 const logEvent = (text) => { const d = document.createElement("div"); d.textContent = `[${new Date().toLocaleTimeString()}] ${text}`; el("events").prepend(d); };
+const logMetric = (name, value) => state.telemetry.push({ t: Date.now(), name, value });
 
 const COMP_MODES = {
   DV_WAR: { label: "ΔV WAR", arena: "ORBIT_CORRECTOR", score: (e, a) => e.stability * 0.65 + Math.max(0, 100 - (a.deltaV || 0) * 0.45) * 0.35 },
@@ -38,9 +41,15 @@ function grantArenaRewards(evalState) {
   const fuel = parseFloat(el("arenaFuel").textContent || "0");
   const xp = Math.round(45 + evalState.stability * 0.55 + Math.max(0, 40 - elapsed) * 0.3);
   const nova = Math.round(35 + evalState.smoothness * 0.35 + fuel * 0.15);
+  if (!evalState.stable && evalState.stability > 85) {
+    state.me.NOVA = (state.me.NOVA || 0) + 8;
+    logEvent("Near miss bonus +8 NOVA");
+  }
   if (state.me) { state.me.XP = (state.me.XP || 0) + xp; state.me.NOVA = (state.me.NOVA || 0) + nova; render(); }
   el("arenaResult").textContent = `Órbita certificada ✅ +${xp} XP / +${nova} NOVA`;
   logEvent(`Arena reward: +${xp} XP / +${nova} NOVA`);
+  logMetric("arena_reward_xp", xp);
+  logMetric("arena_reward_nova", nova);
 }
 
 const arenaManager = new ArenaManager({
@@ -82,22 +91,35 @@ window.startCompetitiveMatch = () => {
   state.competitive.activeMatch = { id:`CMP-${Date.now()}`, mode:modeKey, stake, pot: entrants.length * stake, entrants, scores:{}, status:"running", startedAt:Date.now() };
   logEvent(`Match competitivo ${mode.label} iniciado. Stake ${stake} NOVA.`);
   uiComp(); render();
+  logMetric("match_start", { mode: modeKey, stake, entrants: entrants.length });
 };
 window.submitCompetitiveScore = () => {
   const m = state.competitive.activeMatch; if (!m || m.status !== "running") return;
   const mode = COMP_MODES[m.mode]; const evalState = arenaManager.evaluate(false); const score = mode.score(evalState, arenaManager.active);
-  m.scores[state.me.id] = score;
+  const volatility = 1 + (Math.random() - 0.5) * 0.1; // ±5%
+  const streakBonus = 1 + Math.min(0.75, state.streak * 0.05);
+  m.scores[state.me.id] = score * volatility * streakBonus;
   for (const pid of m.entrants) if (pid !== state.me.id && !m.scores[pid]) m.scores[pid] = score * (0.75 + Math.random() * 0.55);
-  logEvent(`Score enviado para ${mode.label}: ${score.toFixed(1)}`); uiComp();
+  logEvent(`Score enviado para ${mode.label}: ${m.scores[state.me.id].toFixed(1)}`); uiComp();
+  logMetric("score_submit", m.scores[state.me.id]);
 };
 window.resolveCompetitiveMatch = () => {
   const m = state.competitive.activeMatch; if (!m || m.status !== "running") return;
   window.submitCompetitiveScore();
+  const duration = (Date.now() - m.startedAt) / 1000;
+  if (duration < 8) {
+    m.status = "invalid";
+    state.me.NOVA += m.stake;
+    logEvent("Match invalidado por duración mínima (anti-exploit)");
+    logMetric("invalid_match_short_duration", duration);
+    return;
+  }
   const winnerId = Object.entries(m.scores).sort((a,b)=>b[1]-a[1])[0]?.[0];
   m.status = "resolved";
-  if (winnerId === state.me.id) { state.me.NOVA += m.pot; state.me.XP += Math.round(m.pot * 0.6); logEvent(`🏆 Ganaste ${COMP_MODES[m.mode].label}. +${m.pot} NOVA`); }
-  else logEvent(`Perdiste ${COMP_MODES[m.mode].label}. Ganador: ${state.snapshot.players?.[winnerId]?.name || winnerId}`);
+  if (winnerId === state.me.id) { state.me.NOVA += m.pot; state.me.XP += Math.round(m.pot * 0.6); state.streak += 1; logEvent(`🏆 Ganaste ${COMP_MODES[m.mode].label}. +${m.pot} NOVA`); }
+  else { state.streak = 0; logEvent(`Perdiste ${COMP_MODES[m.mode].label}. Ganador: ${state.snapshot.players?.[winnerId]?.name || winnerId}`); }
   uiComp(); render();
+  logMetric("match_resolve", { winnerId, duration, pot: m.pot, mode: m.mode });
 };
 
 window.switchArena = (k) => arenaManager.switchTo(k);
@@ -160,6 +182,7 @@ function render() {
   const ranked = Object.values(state.snapshot.players||{}).sort((a,b)=>(state.snapshot.mmr?.[b.id]||1000)-(state.snapshot.mmr?.[a.id]||1000));
   el("leaderboard").innerHTML = ranked.slice(0,10).map((p,i)=>`#${i+1} ${p.name} • MMR:${state.snapshot.mmr?.[p.id]||1000} • XP:${p.XP}`).join("<br>") || "Sin datos";
   uiComp();
+  if (state.telemetry.length > 2000) state.telemetry = state.telemetry.slice(-1000);
 }
 
 setInterval(()=>{ if(state.socket?.connected) state.socket.emit("heartbeat"); }, 4000);
@@ -176,3 +199,9 @@ window.addEventListener("keydown", (e)=>{
 
 render();
 if (state.token) window.reconnect();
+
+if (!localStorage.getItem("ylma_onboarding_seen")) {
+  logEvent("Tutorial: usa W/A/S/D + Q/E + SPACE para controlar la nave.");
+  logEvent("Objetivo inicial: estabilidad > 85% para bonus Near Miss.");
+  localStorage.setItem("ylma_onboarding_seen", "1");
+}
