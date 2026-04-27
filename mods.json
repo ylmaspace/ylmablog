@@ -1,0 +1,7 @@
+{
+  "mods": [
+    {"id": "arena_docking", "type": "ARENA_EXPANSION", "costNOVA": 500},
+    {"id": "parts_pack_advanced", "type": "PARTS_PACK", "costNOVA": 250},
+    {"id": "mechanic_thrust_vectoring", "type": "MECHANIC_UNLOCK", "costXP": 1200}
+  ]
+}

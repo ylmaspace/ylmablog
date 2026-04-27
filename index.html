@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YLMA Space Experience | SPA Competitiva</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="spa-shell">
+    <aside class="sidebar">
+      <h2>YLMA</h2>
+      <button class="nav-btn active" data-section="home">HOME</button>
+      <button class="nav-btn" data-section="competition">COMPETICIÓN</button>
+      <button class="nav-btn" data-section="training">ENTRENAMIENTO</button>
+      <button class="nav-btn" data-section="forum">FORO</button>
+      <button class="nav-btn" data-section="store">TIENDA</button>
+      <button class="nav-btn" data-section="group">GRUPO</button>
+      <div class="sidebar-foot muted">
+        <div>XP: <span id="pxp">0</span></div>
+        <div>NOVA: <span id="pnova">0</span></div>
+        <div>MMR: <span id="pmmr">1000</span></div>
+      </div>
+    </aside>
+
+    <main class="spa-main">
+      <section id="home" class="spa-section active">
+        <div class="hero card">
+          <h1>Simulación física competitiva</h1>
+          <p>Órbitas reales, riesgo con NOVA, progresión y comunidad de tripulación.</p>
+          <div class="hero-actions">
+            <button data-section-jump="competition">Iniciar competición</button>
+            <button data-section-jump="training">Entrenar ahora</button>
+          </div>
+        </div>
+        <div class="grid">
+          <article class="card"><h3>Noticias</h3><div id="newsList" class="muted"></div></article>
+          <article class="card"><h3>Eventos activos</h3><div id="eventsList" class="muted"></div></article>
+          <article class="card"><h3>Acceso rápido</h3><div class="muted">Usa el menú lateral para navegar sin recargar.</div></article>
+        </div>
+      </section>
+
+      <section id="competition" class="spa-section">
+        <div class="card">
+          <h2>Competición (core)</h2>
+          <button id="startCompetitionFlow">Iniciar competición</button>
+          <div id="mmStatus" class="muted">Estado: idle</div>
+          <div id="lobbyStatus" class="muted">Lobby: -</div>
+        </div>
+
+        <div class="card">
+          <h3>Carrusel de arenas</h3>
+          <div id="arenaCarousel" class="carousel"></div>
+          <div class="muted">Arena seleccionada: <span id="selectedArenaName">-</span></div>
+        </div>
+
+        <div class="card">
+          <h3>Simulación arena</h3>
+          <select id="arenaSelector" onchange="switchArena(this.value)">
+            <option value="ORBIT_CORRECTOR">ORBIT CORRECTOR</option>
+            <option value="WIND_TUNNEL_BUILDER">WIND TUNNEL BUILDER</option>
+            <option value="RENDEZVOUS">RENDEZVOUS</option>
+          </select>
+          <canvas id="arenaCanvas" width="720" height="520"></canvas>
+          <div class="muted">Arena: <span id="arenaName">ORBIT</span> | Tiempo: <span id="arenaTime">0.0</span>s | Fuel: <span id="arenaFuel">100.0</span> | Estabilidad: <span id="arenaStability">0.0</span> | ΔV: <span id="arenaDeltaV">0.0</span> | Ecc: <span id="arenaEcc">0.0</span> | Smooth: <span id="arenaSmooth">0.0</span></div>
+          <div class="controls-grid">
+            <button onclick="arenaInput('FORWARD')">FORWARD</button><button onclick="arenaInput('UP')">UP</button><button onclick="arenaInput('BACKWARD')">BACKWARD</button>
+            <button onclick="arenaInput('LEFT')">LEFT</button><button onclick="arenaInput('MAIN_TOGGLE')">MAIN ENGINE</button><button onclick="arenaInput('RIGHT')">RIGHT</button>
+            <button onclick="arenaInput('DOWN')">DOWN</button><button onclick="resetArena()">RESET</button><button onclick="evaluateArena(true)">EVALUAR</button>
+          </div>
+          <div id="arenaResult" class="muted"></div>
+          <div id="windBuilderPanel" style="display:none"><div id="windBuildInfo" class="muted"></div></div>
+        </div>
+      </section>
+
+      <section id="training" class="spa-section">
+        <div class="card">
+          <h2>Entrenamiento 1v1 vs Bot</h2>
+          <div class="grid-3">
+            <label>Arena
+              <select id="trainingArena">
+                <option>ORBIT_CORRECTOR</option><option>WIND_TUNNEL_BUILDER</option><option>RENDEZVOUS</option>
+              </select>
+            </label>
+            <label>Dificultad
+              <select id="trainingDifficulty"><option>EASY</option><option>MEDIUM</option><option>HARD</option></select>
+            </label>
+            <label>Recompensa XP estimada<input id="trainingReward" value="18" readonly /></label>
+          </div>
+          <button id="startTrainingBtn">Iniciar entrenamiento</button>
+          <div id="trainingStatus" class="muted">Sin sesión de entrenamiento.</div>
+        </div>
+      </section>
+
+      <section id="forum" class="spa-section">
+        <div class="grid forum-layout">
+          <div class="card">
+            <h2>FORO YLMA</h2>
+            <input id="forumTitle" placeholder="Título del post" />
+            <textarea id="forumBody" rows="4" placeholder="Comparte estrategia, clip o build..."></textarea>
+            <button id="publishForumPost">Publicar</button>
+            <div id="forumPosts" class="muted"></div>
+          </div>
+          <div class="card">
+            <h3>Chat en tiempo real</h3>
+            <div id="forumChat" class="chat-box"></div>
+            <div class="row"><input id="forumChatInput" placeholder="Mensaje global" /><button id="sendForumChat">Enviar</button></div>
+            <div class="muted">Online: <span id="forumOnline">0</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="store" class="spa-section">
+        <div class="card">
+          <h2>Tienda (NOVA / XP)</h2>
+          <div id="storeItems" class="muted"></div>
+        </div>
+      </section>
+
+      <section id="group" class="spa-section">
+        <div class="card">
+          <h2>Grupo</h2>
+          <input id="groupCode" placeholder="Código de grupo" />
+          <button id="joinGroupBtn">Unirse</button>
+          <div id="groupStatus" class="muted">No estás en grupo.</div>
+        </div>
+      </section>
+
+      <section class="card" style="margin-top:12px">
+        <h3>Estado técnico</h3>
+        <div class="muted">Token: <span id="ptoken">-</span> | PlayerID: <span id="pid">-</span> | Estado socket: <span id="status">desconectado</span> | Tick: <span id="tick">-</span></div>
+        <div id="events" class="muted"></div>
+      </section>
+
+      <div style="display:none">
+        <input id="guestName" /><button onclick="loginGuest()"></button><button onclick="reconnect()"></button>
+        <input id="newName" /><button onclick="setName()"></button>
+        <div id="pname"></div><div id="pclan"></div><div id="proom"></div><div id="players"></div><div id="clans"></div><div id="leaderboard"></div>
+        <div id="challenge"></div><textarea id="code"></textarea><div id="challengeResult"></div><textarea id="blueprintJson"></textarea><div id="compBoard"></div>
+        <span id="compMatchId"></span><span id="compStake"></span><span id="compPot"></span><span id="compStatus"></span><span id="compMyScore"></span>
+        <select id="compMode"><option value="DV_WAR">DV_WAR</option><option value="WIND_TUNNEL_BATTLE">WIND_TUNNEL_BATTLE</option><option value="REACTION_ARENA">REACTION_ARENA</option><option value="ORBIT_DOMINATION">ORBIT_DOMINATION</option></select>
+        <input id="stakeInput" value="25" />
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

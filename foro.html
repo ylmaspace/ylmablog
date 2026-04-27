@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YLMA Space | FORO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&family=Inter:wght@400;500;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./foro.css" />
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="kicker">YLMA SPACE COMMUNITY</p>
+      <h1>Comunidad YLMA</h1>
+      <p class="subtitle">Aprendizaje + competición + espacio. Comparte jugadas, builds y retos orbitales.</p>
+      <div class="hero-actions">
+        <button id="createPostBtn">Crear publicación</button>
+        <a class="ghost-btn" href="./index.html">Volver al simulador</a>
+      </div>
+    </div>
+    <div class="profile-card" id="profileCard"></div>
+  </header>
+
+  <main class="layout">
+    <section class="forum-column">
+      <div class="toolbar card">
+        <input id="searchInput" type="search" placeholder="Buscar posts, tags, @usuarios..." />
+        <select id="categoryFilter"></select>
+        <button id="toggleTrending">Ver trending</button>
+      </div>
+
+      <div class="card sections" id="sections"></div>
+      <div class="card pinned" id="pinnedPosts"></div>
+      <div class="card posts" id="postFeed"></div>
+    </section>
+
+    <aside class="chat-column">
+      <section class="card chat-box">
+        <div class="chat-head">
+          <h3>💬 Chat global</h3>
+          <span id="onlineIndicator">0 online</span>
+        </div>
+        <div id="chatMessages" class="chat-messages"></div>
+        <div class="chat-input-row">
+          <input id="chatInput" placeholder="Escribe mensaje..." />
+          <button id="sendChatBtn">Enviar</button>
+        </div>
+      </section>
+
+      <section class="card notifications">
+        <h3>🔔 Notificaciones</h3>
+        <div id="notificationList"></div>
+      </section>
+
+      <section class="card trending">
+        <h3>📊 Trending topics</h3>
+        <div id="trendingList"></div>
+      </section>
+    </aside>
+  </main>
+
+  <dialog id="postDialog">
+    <form method="dialog" id="postForm">
+      <h3>Nueva publicación</h3>
+      <input id="postTitle" placeholder="Título del hilo" required />
+      <select id="postCategory"></select>
+      <textarea id="postContent" rows="7" placeholder="Describe tu aporte, idea o reto" required></textarea>
+      <input id="postImage" placeholder="URL imagen (opcional)" />
+      <menu>
+        <button value="cancel">Cancelar</button>
+        <button id="submitPostBtn" value="default">Publicar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script type="module" src="./foro.js"></script>
+</body>
+</html>

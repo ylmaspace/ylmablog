@@ -1,0 +1,5 @@
+{
+  "trainingDailyXpCap": 200,
+  "competitiveMinDuration": 8,
+  "competitiveVolatility": 0.05
+}

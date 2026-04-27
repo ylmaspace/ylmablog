@@ -1,0 +1,4 @@
+{
+  "core": ["ORBIT", "WIND", "RENDEZVOUS"],
+  "extended": ["DOCKING", "REENTRY", "ENERGY"]
+}
